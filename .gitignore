@@ -1,0 +1,15 @@
+# --- Python ---
+.venv/
+__pycache__/
+*.py[cod]
+
+# --- Node / Next.js ---
+frontend/node_modules/
+frontend/.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- VS Code / macOS ---
+.vscode/*.log
+.DS_Store

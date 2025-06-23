@@ -1,23 +1,23 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import json, pathlib
 
 # ── local helpers ───────────────────────────────────────────────────────────
-from backend.nlp import parse as nlp_parse         # spaCy extractor
+from backend.nlp import parse as nlp_parse           # spaCy extractor
 from backend.fhir import to_fhir                    # builds FHIR search URL
 # ---------------------------------------------------------------------------
 
 app = FastAPI()
 
-# CORS so the React dev server (localhost:3000) can call us on :8000
+# CORS so the React dev server (localhost:3001) can call us on :8000
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_methods=["POST"],
+    allow_origins=["http://localhost:3001"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -29,11 +29,12 @@ MOCK_PATIENTS: List[Dict[str, Any]] = json.loads(DATA_FILE.read_text())
 
 class Query(BaseModel):
     question: str
+    ageOp:  str | None = None   # ≥ / ≤ / …
+    ageVal: int | None = None
 
 
 # -------- helper ------------------------------------------------------------
 def age_matches(row: Dict[str, Any], op: str | None, val: int | None) -> bool:
-    """Return True if the patient row satisfies the age comparator."""
     if op is None or val is None:
         return True
     if op in ("gt", ">"):
@@ -49,28 +50,36 @@ def age_matches(row: Dict[str, Any], op: str | None, val: int | None) -> bool:
 
 
 @app.post("/nlp")
-def parse(query: Query):
+async def parse(request: Request):
     """
     Turn an English question into a simulated FHIR search + preview data.
+    The payload can be either:
+      { "question": "… free text …" }
+      { "question": "…", "ageOp": "gt", "ageVal": 60 }
     """
-    parsed = nlp_parse(query.question)          # e.g. {'icd':'E11', ...}
+    body: dict = await request.json()
+    q = Query(**body)                     # validate & coerce types
+
+    # 1) NLP parse the free-text question
+    parsed = nlp_parse(q.question)        # → {'icd': 'E11', ...}
+
+    # 2) UI override: if the user chose an explicit age filter, honour it
+    if q.ageOp and q.ageVal is not None:
+        parsed["age_op"]    = q.ageOp
+        parsed["age_value"] = q.ageVal
+
+    # 3) Build (mock) FHIR query string
     fhir_url = to_fhir(parsed)
 
-    # ── filter mock rows ───────────────────────────────────────────────────
-    # 1) Require a recognised ICD; otherwise return empty list immediately
+    # 4) Filter mock dataset
     icd = parsed.get("icd")
-    if not icd:
+    if not icd:                           # condition not recognised
         return {"fhirQuery": fhir_url, "preview": []}
 
-    rows = [p for p in MOCK_PATIENTS if p["icd"] == icd]
-
-    # 2) Apply age comparator if present
     rows = [
-        p for p in rows
-        if age_matches(p, parsed.get("age_op"), parsed.get("age_value"))
+        p for p in MOCK_PATIENTS
+        if p["icd"] == icd
+        and age_matches(p, parsed.get("age_op"), parsed.get("age_value"))
     ]
-
-    # 3) (optional) date_range filter could be added here later
-    # rows = [p for p in rows if date_matches(p, parsed.get("date_range"))]
 
     return {"fhirQuery": fhir_url, "preview": rows}

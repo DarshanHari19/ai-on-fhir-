@@ -1,0 +1,11 @@
+
+{
+  "title": "AI on FHIR Demo",
+  "askPlaceholder": "Ask a clinical question…",
+  "conditionAny": "Any condition",
+  "ageAny": "Any age",
+  "ageOver": "over",
+  "ageUnder": "under",
+  "run": "Run",
+  "noMatches": "No matching patients."
+}

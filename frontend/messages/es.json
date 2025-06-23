@@ -1,0 +1,10 @@
+{
+  "title": "Demostración de AI sobre FHIR",
+  "askPlaceholder": "Pregunta clínica…",
+  "conditionAny": "Cualquier condición",
+  "ageAny": "Cualquier edad",
+  "ageOver": "mayores de",
+  "ageUnder": "menores de",
+  "run": "Ejecutar",
+  "noMatches": "No se encontraron pacientes."
+}

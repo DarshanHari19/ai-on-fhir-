@@ -1,14 +1,14 @@
 services:
-  # ──────────────── FastAPI backend ────────────────
   - type: web
     name: ai-on-fhir-backend
     env: docker
     plan: free
-    dockerfilePath: backend/Dockerfile   # Dockerfile already does:
-                                         #   CMD ["uvicorn", "backend.main:app", ...]
+    dockerfilePath: backend/Dockerfile
     dockerContext: .
     autoDeploy: true
     envVars:
+      - key: PYTHONPATH      
+        value: /app
       - key: PORT
         value: 8000
 

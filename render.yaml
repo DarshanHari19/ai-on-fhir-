@@ -1,0 +1,27 @@
+services:
+  # ──────────────── FastAPI backend ────────────────
+  - type: web
+    name: ai-on-fhir-backend          # you can rename if taken
+    env: docker
+    plan: free
+    dockerfilePath: backend/Dockerfile
+    dockerContext: .
+    autoDeploy: true                  
+    envVars:
+      - key: PORT
+        value: 8000
+
+  # ──────────────── Next.js frontend ───────────────
+  - type: web
+    name: ai-on-fhir-frontend        
+    env: docker
+    plan: free
+    dockerfilePath: frontend/Dockerfile
+    dockerContext: frontend
+    autoDeploy: true
+    envVars:
+      # ⚠️  TEMP value; update after backend's first deploy
+      - key: NEXT_PUBLIC_API_URL
+        value: https://ai-on-fhir-backend.onrender.com     # adjust once URL known
+      - key: PORT
+        value: 3000

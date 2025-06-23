@@ -1,14 +1,13 @@
 services:
   # ──────────────── FastAPI backend ────────────────
   - type: web
-    name: ai-on-fhir-backend          # change if the slug is taken
+    name: ai-on-fhir-backend
     env: docker
     plan: free
-    dockerfilePath: backend/Dockerfile
+    dockerfilePath: backend/Dockerfile   # Dockerfile already does:
+                                         #   CMD ["uvicorn", "backend.main:app", ...]
     dockerContext: .
     autoDeploy: true
-    startCommand: >
-      uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PORT
         value: 8000
@@ -18,13 +17,11 @@ services:
     name: ai-on-fhir-frontend
     env: docker
     plan: free
-    dockerfilePath: frontend/Dockerfile
-    dockerContext: frontend         # keep build context scoped
+    dockerfilePath: frontend/Dockerfile  # Dockerfile already runs `npm run start`
+    dockerContext: frontend
     autoDeploy: true
-    startCommand: >                 # use the command in Dockerfile by default
-      npm run start
     envVars:
-      # ⚠️  update this AFTER the backend’s first successful deploy
+      # ⚠️ swap this to the actual backend URL after the first backend deploy
       - key: NEXT_PUBLIC_API_URL
         value: https://ai-on-fhir-backend.onrender.com
       - key: PORT

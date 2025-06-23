@@ -7,8 +7,8 @@ from typing import List, Dict, Any
 import json, pathlib
 
 # ── local helpers ───────────────────────────────────────────────────────────
-from .nlp import parse as nlp_parse          # spaCy extractor
-from .fhir import to_fhir                    # builds FHIR search URL
+from backend.nlp import parse as nlp_parse         # spaCy extractor
+from backend.fhir import to_fhir                    # builds FHIR search URL
 # ---------------------------------------------------------------------------
 
 app = FastAPI()

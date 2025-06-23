@@ -1,27 +1,31 @@
 services:
   # ──────────────── FastAPI backend ────────────────
   - type: web
-    name: ai-on-fhir-backend          # you can rename if taken
+    name: ai-on-fhir-backend          # change if the slug is taken
     env: docker
     plan: free
     dockerfilePath: backend/Dockerfile
     dockerContext: .
-    autoDeploy: true                  
+    autoDeploy: true
+    startCommand: >
+      uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PORT
         value: 8000
 
   # ──────────────── Next.js frontend ───────────────
   - type: web
-    name: ai-on-fhir-frontend        
+    name: ai-on-fhir-frontend
     env: docker
     plan: free
     dockerfilePath: frontend/Dockerfile
-    dockerContext: frontend
+    dockerContext: frontend         # keep build context scoped
     autoDeploy: true
+    startCommand: >                 # use the command in Dockerfile by default
+      npm run start
     envVars:
-      # ⚠️  TEMP value; update after backend's first deploy
+      # ⚠️  update this AFTER the backend’s first successful deploy
       - key: NEXT_PUBLIC_API_URL
-        value: https://ai-on-fhir-backend.onrender.com     # adjust once URL known
+        value: https://ai-on-fhir-backend.onrender.com
       - key: PORT
         value: 3000
